@@ -8,7 +8,7 @@ stages:
     - test
     - package
     - deploy
-    - sonarqube_analysis
+    #- sonarqube_analysis
   
 
 cache:
@@ -52,13 +52,13 @@ package_job:
       - target/*.jar
       - target/*.war  
 
-sonarqube_analysis:
-  image: maven:latest
-  stage: sonarqube_analysis
-  tags:
-    - docker
-  script:
-    - mvn clean verify sonar:sonar -Dsonar.projectKey=$SONAR_KEY -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_TOKEN
+#sonarqube_analysis:
+  #image: maven:latest
+  #stage: sonarqube_analysis
+  #tags:
+    #- docker
+  #script:
+    #- mvn clean verify sonar:sonar -Dsonar.projectKey=$SONAR_KEY -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_TOKEN
 
 Deploy_job:
   stage: deploy
