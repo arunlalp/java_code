@@ -1,0 +1,73 @@
+variables:
+  MAVEN_OPTS: -Dmaven.repo.local=.m2/repository
+
+#image: maven:latest
+
+stages:
+    - build
+    - test
+    - package
+    - deploy
+    - sonarqube_analysis
+  
+
+cache:
+  paths:
+    - .m2/repository
+    - target
+
+build_job:
+  image: maven:3.9.3-ibm-semeru-17-focal
+  stage: build
+  tags:
+    - docker 
+
+  script: 
+    - echo "Maven compile started"
+    - "mvn compile"
+
+
+test_job:
+  image: maven:3.9.3-ibm-semeru-11-focal
+  stage: test
+  tags:
+    - docker 
+
+  script: 
+    - echo "Maven test started"
+    - "mvn test"
+
+package_job:
+  image: maven:3.9.3-eclipse-temurin-17-focal
+  stage: package
+  tags:
+    - docker 
+
+  script: 
+    - echo "Maven packaging started"
+    - "mvn package"
+
+  artifacts:
+    paths:
+      - target/*.jar
+      - target/*.war  
+
+sonarqube_analysis:
+  image: maven:latest
+  stage: sonarqube_analysis
+  tags:
+    - docker
+  script:
+    - mvn clean verify sonar:sonar -Dsonar.projectKey=$SONAR_KEY -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_TOKEN
+
+Deploy_job:
+  stage: deploy
+  tags:
+    - docker 
+
+  script: 
+    - echo "Maven deploy started"
+
+
+
+
