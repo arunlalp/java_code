@@ -24,8 +24,8 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 sh 'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/c1l9p0p2'
-                sh 'docker tag ${ECR_REPO}:latest public.ecr.aws/c1l9p0p2/${ECR_REPO}:1.0'
-                sh 'docker push public.ecr.aws/c1l9p0p2/${ECR_REPO}:1.0'
+                sh 'docker tag arun_custom_repo:latest public.ecr.aws/c1l9p0p2/arun_custom_repo:1.0'
+                sh 'docker push public.ecr.aws/c1l9p0p2/arun_custom_repo:1.0'
             }
         }
     }
