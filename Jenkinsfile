@@ -1,54 +1,32 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.3-ibm-semeru-17-focal'
-            args '-v $PWD/.m2/repository:/root/.m2/repository'
-        }
-    }
-    
+    agent any
+
     environment {
-        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        AWS_REGION = 'us-west-2'
+        ECR_REPO = sh(script: "aws secretsmanager get-secret-value --secret-id my-ecr-credentials --query SecretString --output text | jq -r .ECR_REPO", returnStdout: true).trim()
     }
-    
+
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo "Maven compile started"
-                sh 'mvn compile'
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/arunlalp/java_code.git'
             }
         }
-        
-        stage('Test') {
+
+        stage('Build Docker Image') {
             steps {
-                echo "Maven test started"
-                sh 'mvn test'
-            }
-        }
-        
-        stage('Package') {
-            steps {
-                echo "Maven packaging started"
-                sh 'mvn package'
-            }
-            
-            post {
-                always {
-                    archiveArtifacts artifacts: ['target/*.jar', 'target/*.war'], allowEmptyArchive: true
+                script {
+                    def customImage = docker.build("my-app:1.0")
                 }
             }
         }
-        
-        stage('Deploy') {
+
+        stage('Push to ECR') {
             steps {
-                echo "Maven deploy started"
-                // Your deploy steps here
+                sh 'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/c1l9p0p2'
+                sh 'docker tag ${ECR_REPO}:latest public.ecr.aws/c1l9p0p2/${ECR_REPO}:1.0'
+                sh 'docker push public.ecr.aws/c1l9p0p2/${ECR_REPO}:1.0'
             }
-        }
-    }
-    
-    post {
-        always {
-            cleanWs()
         }
     }
 }
